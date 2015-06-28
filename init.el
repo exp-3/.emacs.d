@@ -1,5 +1,10 @@
+;;; init.el --- an initialize file for emacs
+;;; Commentary:
+;;; this file initialize emacs.
+
+;;; Code:
 ;; --------------------------------------------------------------
-;;; package.el
+;; package.el
 (require 'package)
 
 ;; MELPAを追加
@@ -12,7 +17,7 @@
 (package-initialize)
 
 ;; ------------------------------------------------------------------
-;;general
+;; general
 
 ;;テーマの設定
 (setq custom-theme-directory "~/.emacs.d/themes/")
@@ -20,6 +25,10 @@
 
 ;;背景色の設定
 (set-face-background 'default "ivory")
+
+;;フレームの透明度
+;(set-frame-parameter nil 'alpha 85)
+(add-to-list 'default-frame-alist '(alpha . 85))
 
 ;;スタートアップ非表示
 (setq inhibit-startup-screen t)
@@ -58,9 +67,6 @@
 (setq-default c-basic-offset 4
               tab-width 4
               indent-tabs-mode nil)
-
-;;フレームの透明度
-(set-frame-parameter (selected-frame) 'alpha '(0.85))
 
 ;;C-Retで矩形選択
 (cua-mode t)
