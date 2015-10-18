@@ -20,11 +20,12 @@
 ;; general
 
 ;;テーマの設定
-(setq custom-theme-directory "~/.emacs.d/themes/")
-(load-theme 'ns-milk t)
+;;(setq custom-theme-directory "~/.emacs.d/themes/")
+;;(load-theme 'ns-milk t)
+(load-theme 'zenburn t)
 
 ;;背景色の設定
-(set-face-background 'default "ivory")
+;;(set-face-background 'default "ivory")
 
 ;;フレームの透明度
 ;(set-frame-parameter nil 'alpha 85)
@@ -44,8 +45,10 @@
 
 ;;行番号表示
 (global-linum-mode t)
+;;(set-face-attribute 'linum nil
+;;                    :foreground "#800"
+;;                    :height 0.9)
 (set-face-attribute 'linum nil
-                    :foreground "#800"
                     :height 0.9)
 
 ;;行番号フォーマット
@@ -56,12 +59,8 @@
 (setq show-paren-delay 0)
 (setq show-paren-style 'expression)
 
-;;括弧の範囲色
-(set-face-background 'show-paren-match-face "#ccc")
-
 ;;行末の空白を強調表示?
 (setq-default show-trailing-whitespace t)
-(set-face-background 'trailing-whitespace "#aaa")
 
 ;;タブの設定
 (setq-default c-basic-offset 4
@@ -80,7 +79,28 @@
 (setq time-stamp-pattern nil)
 
 ;;新しくファイルを作成時にテンプレートを自動挿入
-(add-hook 'find-file-hooks 'auto-insert)
+;(add-hook 'find-file-hooks 'auto-insert)
+
+;; emacsclient版のkill-this-buffer
+(add-hook 'server-switch-hook
+            (lambda ()
+              (when (current-local-map)
+                (use-local-map (copy-keymap (current-local-map))))
+	      (when server-buffer-clients
+		(local-set-key (kbd "C-x k") 'server-edit))))
+
+;; 色の変更
+(custom-set-faces
+ ;; custom-set-faces was added by Custom.
+ ;; If you edit it by hand, you could mess it up, so be careful.
+ ;; Your init file should contain only one such instance.
+ ;; If there is more than one, they won't work right.
+ '(flycheck-error ((t (:underline (:color "brown1" :style wave)))))
+ '(helm-match ((t (:background "DarkGoldenrod4"))))
+ '(helm-selection-line ((t (:background "#D0BF8F" :foreground "tomato4"))))
+ '(show-paren-match ((t (:background "#ccc"))))
+ '(trailing-whitespace ((t (:background "#aaa"))))
+ '(linum ((t (:foreground "indian red")))))
 
 ;; ------------------------------------------------------------------------
 ;;modeline
@@ -94,7 +114,7 @@
 ;;モードラインに時刻表示
 (display-time)
 
-;;モードラインに行、列番号を表示
+;モードラインに行、列番号を表示
 (line-number-mode 0)
 (column-number-mode 0)
 (size-indication-mode 0)
@@ -127,7 +147,7 @@
 ;; Define a c/c++ checker
 (flycheck-define-checker my-c/c++-clang
   "A C/C++ checker using clang++."
-  :command ("clang++-3.5"
+  :command ("clang++"
             "-std=c++14"
             "-Wall"
             "-Wextra"
@@ -174,8 +194,23 @@
 ;; helm有効化
 (helm-mode t)
 
+;; helmキーバインド
+(define-key global-map (kbd "M-x")     'helm-M-x)
+(define-key global-map (kbd "C-x C-f") 'helm-find-files)
+(define-key global-map (kbd "C-x C-r") 'helm-recentf)
+(define-key global-map (kbd "M-y")     'helm-show-kill-ring)
+(define-key global-map (kbd "C-x i")   'helm-imenu)
+(define-key global-map (kbd "C-x b")   'helm-buffers-list)
+
 ;; 補完をタブで実行
-(define-key helm-read-file-map (kbd "<tab>") 'helm-execute-persistent-action)
+(define-key helm-read-file-map (kbd "TAB") 'helm-execute-persistent-action)
+(define-key helm-find-files-map (kbd "TAB") 'helm-execute-persistent-action)
+
+;; ファイルが存在した時のみバッファを開く
+(defadvice helm-ff-kill-or-find-buffer-fname (around execute-only-if-exist activate)
+  "Execute command only if CANDIDATE exists"
+  (when (file-exists-p candidate)
+    ad-do-it))
 
 ;; ------------------------------------------------------------------------
 ;; expand-region
@@ -188,6 +223,18 @@
 
 ;; expand-region有効化
 (transient-mark-mode t)
+
+;; ------------------------------------------------------------------------
+;; undo-tree
+
+(require 'undo-tree)
+(global-undo-tree-mode)
+
+;; ------------------------------------------------------------------------
+;; volatile-hilights
+
+(require 'volatile-highlights)
+(setq volatile-highlights-mode t)
 
 ;; ------------------------------------------------------------------------
 ;; magit
@@ -205,8 +252,12 @@
 
 ;; customize
 (custom-set-variables
- '(helm-gtags-path-style 'relative)
- '(helm-gtags-auto-update t))
+ ;; custom-set-variables was added by Custom.
+ ;; If you edit it by hand, you could mess it up, so be careful.
+ ;; Your init file should contain only one such instance.
+ ;; If there is more than one, they won't work right.
+ '(helm-gtags-auto-update t)
+ '(helm-gtags-path-style (quote relative)))
 
 ;; key bindings
 (eval-after-load "helm-gtags"
@@ -219,6 +270,37 @@
      (define-key helm-gtags-mode-map (kbd "C-c >") 'helm-gtags-next-history)
      (define-key helm-gtags-mode-map (kbd "M-,") 'helm-gtags-pop-stack)))
 
+;; ------------------------------------------------------------------------
+;; direx
+
+(require 'direx)
+
+;; direxの表示設定
+(setq direx:leaf-icon "  "
+      direx:open-icon "▾ "
+      direx:closed-icon "▸ ")
+
+;; direxのキーバインド
+(global-set-key (kbd "C-x C-j") 'direx:jump-to-directory-other-window)
+
+;; ------------------------------------------------------------------------
+;; popwin
+
+(require 'popwin)
+(popwin-mode 1)
+
+;; Package
+(push "*Packages*" popwin:special-display-config)
+
+;; Help
+(push "*Help*" popwin:special-display-config)
+
+;; undo-tree用の設定
+(push '("*undo-tree*" :width 0.2 :position right) popwin:special-display-config)
+
+;; direx用の設定
+(push '(direx:direx-mode :position left :width 25 :dedicated t)
+      popwin:special-display-config)
 
 ;; ------------------------------------------------------------------------
 (provide 'init)
