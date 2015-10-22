@@ -144,9 +144,32 @@
 ;; flycheck有効化
 (add-hook 'after-init-hook #'global-flycheck-mode)
 
-;; Define a c/c++ checker
-(flycheck-define-checker my-c/c++-clang
-  "A C/C++ checker using clang++."
+;; Define a c checker
+(flycheck-define-checker my-c-clang
+  "A C checker using clang."
+  :command ("clang"
+            "-std=c99"
+            "-Wall"
+            "-Wextra"
+            "-Wconversion"
+            "-fsyntax-only"
+            "-fno-color-diagnostics" ; Do not include color codes in output
+            "-fno-caret-diagnostics" ; Do not visually indicate the source
+                                        ; location
+            "-fno-diagnostics-show-option" ; Do not show the corresponding
+                                        ; warning group
+            ;(option-list "-I" flycheck-clang-include-path)
+            source)
+  :error-patterns
+  ((warning line-start (file-name) ":" line ":" column
+            ": warning: " (message) line-end)
+   (error line-start (file-name) ":" line ":" column
+          ": " (or "fatal error" "error") ": " (message) line-end))
+  :modes (c-mode))
+
+;; Define a c++ checker
+(flycheck-define-checker my-c++-clang
+  "A C++ checker using clang++."
   :command ("clang++"
             "-std=c++14"
             "-Wall"
@@ -165,9 +188,10 @@
             ": warning: " (message) line-end)
    (error line-start (file-name) ":" line ":" column
           ": " (or "fatal error" "error") ": " (message) line-end))
-  :modes (c-mode c++-mode))
+  :modes (c++-mode))
 
-(add-to-list 'flycheck-checkers 'my-c/c++-clang)
+(add-to-list 'flycheck-checkers 'my-c-clang)
+(add-to-list 'flycheck-checkers 'my-c++-clang)
 
 ;; --------------------------------------------------------------------
 ;; smartparens
@@ -290,13 +314,13 @@
 (popwin-mode 1)
 
 ;; Package
-(push "*Packages*" popwin:special-display-config)
+(push " *Packages*" popwin:special-display-config)
 
 ;; Help
-(push "*Help*" popwin:special-display-config)
+(push " *Help*" popwin:special-display-config)
 
 ;; undo-tree用の設定
-(push '("*undo-tree*" :width 0.2 :position right) popwin:special-display-config)
+(push '(" *undo-tree*" :width 0.15 :position right) popwin:special-display-config)
 
 ;; direx用の設定
 (push '(direx:direx-mode :position left :width 25 :dedicated t)
