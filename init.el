@@ -19,67 +19,66 @@
 ;; ------------------------------------------------------------------
 ;; general
 
-;;テーマの設定
-;;(setq custom-theme-directory "~/.emacs.d/themes/")
-;;(load-theme 'ns-milk t)
+;; テーマの設定
+;; (setq custom-theme-directory "~/.emacs.d/themes/")
+;; (load-theme 'ns-milk t)
 (load-theme 'zenburn t)
 
-;;背景色の設定
-;;(set-face-background 'default "ivory")
+;; 背景色の設定
+;; (set-face-background 'default "ivory")
 
-;;フレームの透明度
-;(set-frame-parameter nil 'alpha 85)
+;; フレームの透明度
 (add-to-list 'default-frame-alist '(alpha . 85))
 
-;;スタートアップ非表示
+;; スタートアップ非表示
 (setq inhibit-startup-screen t)
 
-;;ツールバー非表示
+;; ツールバー非表示
 (tool-bar-mode -1)
 
-;;メニューバー非表示
+;; メニューバー非表示
 (menu-bar-mode -1)
 
-;;スクロールバー非表示
+;; スクロールバー非表示
 (scroll-bar-mode -1)
 
-;;行番号表示
+;; 行番号表示
 (global-linum-mode t)
-;;(set-face-attribute 'linum nil
-;;                    :foreground "#800"
-;;                    :height 0.9)
+;; (set-face-attribute 'linum nil
+;;                     :foreground "#800"
+;;                     :height 0.9)
 (set-face-attribute 'linum nil
                     :height 0.9)
 
-;;行番号フォーマット
-;;(setq linum-format "%4d")
+;; 行番号フォーマット
+;; (setq linum-format "%4d")
 
-;;括弧の中を強調表示
+;; 対応する括弧間を強調表示
 (show-paren-mode t)
 (setq show-paren-delay 0)
 (setq show-paren-style 'expression)
 
-;;行末の空白を強調表示?
+;; 行末の空白を強調表示
 (setq-default show-trailing-whitespace t)
 
-;;タブの設定
+;; タブの設定
 (setq-default c-basic-offset 4
               tab-width 4
               indent-tabs-mode nil)
 
-;;C-Retで矩形選択
+;; C-Retで矩形選択
 (cua-mode t)
 (setq cua-enable-cua-keys nil)
 
-;;M-↑←↓→でwindow移動
+;; M-↑←↓→でwindow移動
 (windmove-default-keybindings 'meta)
 
-;;セーブ時にtime stampを押す
+;; セーブ時にtime stampを押す
 (add-hook 'before-save-hook 'time-stamp)
 (setq time-stamp-pattern nil)
 
-;;新しくファイルを作成時にテンプレートを自動挿入
-;(add-hook 'find-file-hooks 'auto-insert)
+;; 新しくファイルを作成時にテンプレートを自動挿入
+; (add-hook 'find-file-hooks 'auto-insert)
 
 ;; emacsclient版のkill-this-buffer
 (add-hook 'server-switch-hook
@@ -98,23 +97,55 @@
  '(flycheck-error ((t (:underline (:color "brown1" :style wave)))))
  '(helm-match ((t (:background "DarkGoldenrod4"))))
  '(helm-selection-line ((t (:background "#D0BF8F" :foreground "tomato4"))))
- '(show-paren-match ((t (:background "#ccc"))))
+ '(show-paren-match ((t (:background "#666"))))
  '(trailing-whitespace ((t (:background "#aaa"))))
  '(linum ((t (:foreground "indian red")))))
 
 ;; ------------------------------------------------------------------------
-;;modeline
+;; c言語での設定
 
-;;モードラインに行番号表示
+(defun inside-class-enum-p (pos)
+  "Check if POS is within the braces of a C++ \"enum class\"."
+  (ignore-errors
+    (save-excursion
+      (goto-char pos)
+      (up-list -1)
+      (backward-sexp 1)
+      (looking-back "enum class "))))
+
+(defun align-enum-class (langelem)
+  "Align contents on LANGELEM."
+  (if (inside-class-enum-p (c-langelem-pos langelem))
+      0
+    (c-lineup-topmost-intro-cont langelem)))
+
+(defun align-enum-class-closing-brace (langelem)
+  "Align closing brace on LANGELEM."
+  (if (inside-class-enum-p (c-langelem-pos langelem))
+      '-
+    '+))
+
+(defun fix-enum-class ()
+  "Setup `c++-mode' to better handle \"class enum\"."
+  (add-to-list 'c-offsets-alist '(topmost-intro-cont . align-enum-class))
+  (add-to-list 'c-offsets-alist
+               '(statement-cont . align-enum-class-closing-brace)))
+
+(add-hook 'c-mode-common-hook 'fix-enum-class)
+
+;; ------------------------------------------------------------------------
+;; modeline
+
+;; モードラインに行番号表示
 ;;(line-number-mode t)
 
-;;モードラインに列番号表示
+;; モードラインに列番号表示
 ;;(column-number-mode t)
 
-;;モードラインに時刻表示
+;; モードラインに時刻表示
 (display-time)
 
-;モードラインに行、列番号を表示
+;; モードラインに行、列番号を表示
 (line-number-mode 0)
 (column-number-mode 0)
 (size-indication-mode 0)
